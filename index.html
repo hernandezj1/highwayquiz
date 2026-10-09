@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#102a43">
+<title>Route Ready — U.S. Highway Quiz</title>
+<style>
+:root{--navy:#102a43;--blue:#1769aa;--ink:#172b4d;--muted:#62748a;--paper:#f5f7fa;--line:#dbe3ec;--green:#18794e;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:var(--navy);color:white;padding:24px max(20px,calc((100vw - 1180px)/2));display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{font-weight:850;font-size:1.2rem;letter-spacing:.02em}.brand span{color:#8ed5ff}.tagline{font-size:.9rem;color:#d2e1ee}
+main{max-width:1180px;margin:26px auto;padding:0 18px 40px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);gap:22px;align-items:start}
+.panel{background:white;border:1px solid var(--line);border-radius:18px;box-shadow:0 5px 20px #102a430d;overflow:hidden}
+.panel-head{padding:18px 20px 12px;border-bottom:1px solid var(--line)}h1,h2,h3,p{margin-top:0}h1{font-size:1.45rem;margin-bottom:4px}h2{font-size:1.08rem;margin-bottom:5px}.sub{color:var(--muted);font-size:.92rem;margin:0}
+.map-wrap{padding:12px;background:#fbfaf8}.map-wrap img{width:100%;height:auto;display:block;border-radius:8px;cursor:zoom-in}.map-note{padding:0 18px 16px;color:var(--muted);font-size:.83rem}
+.quiz{padding:20px}.eyebrow{color:var(--blue);font-weight:800;text-transform:uppercase;letter-spacing:.1em;font-size:.75rem}.progress-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0 18px;color:var(--muted);font-size:.88rem}.progress{height:7px;background:#e9eef4;border-radius:20px;overflow:hidden;flex:1}.progress div{height:100%;width:0;background:var(--blue);transition:width .2s}
+.route{display:flex;align-items:center;gap:12px;padding:15px;border-radius:12px;background:#f0f6fb;margin:18px 0}.city{flex:1;min-width:0}.city small{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.08em}.city strong{font-size:1.04rem;overflow-wrap:anywhere}.arrow{font-size:1.4rem;color:var(--blue)}
+.question{font-size:1.08rem;font-weight:750;margin:0 0 14px}.answers{display:grid;gap:9px}.answer{width:100%;text-align:left;border:1px solid var(--line);border-radius:11px;padding:12px 14px;background:white;color:var(--ink);font:inherit;cursor:pointer;display:flex;gap:11px;align-items:center;transition:border .15s,background .15s}.answer:hover:not(:disabled){border-color:var(--blue);background:#f6fbff}.letter{width:28px;height:28px;flex:0 0 28px;border-radius:8px;background:#edf2f7;display:grid;place-items:center;font-weight:800;font-size:.82rem}.answer.correct{border-color:#62b58a;background:#effaf3}.answer.correct .letter{background:#ccebd8;color:var(--green)}.answer.wrong{border-color:#e49a94;background:#fff4f2}.answer.wrong .letter{background:#fbd8d4;color:var(--red)}.answer:disabled{cursor:default}
+.feedback{display:none;margin-top:14px;padding:13px 14px;border-radius:11px;font-size:.92rem}.feedback.show{display:block}.feedback.good{background:#effaf3;color:#155b39}.feedback.bad{background:#fff4f2;color:#8d2119}
+.actions{display:flex;justify-content:space-between;gap:10px;margin-top:18px}.btn{border:0;border-radius:10px;padding:11px 16px;font:inherit;font-weight:750;cursor:pointer}.btn.primary{background:var(--blue);color:white}.btn.secondary{background:#edf2f7;color:var(--ink)}.btn:disabled{opacity:.4;cursor:not-allowed}
+.result{display:none;padding:22px}.result.show{display:block}.score{font-size:3rem;line-height:1.1;font-weight:900;color:var(--blue);margin:12px 0}.result p{color:var(--muted)}.review{display:grid;gap:8px;margin:18px 0}.review-item{padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-size:.9rem}.review-item b{display:block}
+.footer{max-width:1180px;margin:-22px auto 30px;padding:0 18px;color:var(--muted);font-size:.82rem}
+@media(max-width:850px){main{grid-template-columns:1fr}.map-panel{order:2}.quiz-panel{order:1}header{align-items:flex-start;flex-direction:column;gap:3px}}
+@media(max-width:430px){.route{gap:7px;padding:12px}.city strong{font-size:.92rem}.quiz{padding:16px}.actions .btn{padding:10px 12px}}
+</style>
+</head>
+<body>
+<header><div class="brand">ROUTE <span>READY</span></div><div class="tagline">A U.S. highway map challenge</div></header>
+<main>
+  <section class="panel quiz-panel">
+    <div class="panel-head"><h1>Can you find the route?</h1><p class="sub">Use the map to choose the interstate route that connects each pair of cities.</p></div>
+    <div id="quiz" class="quiz">
+      <div class="eyebrow">Route challenge</div>
+      <div class="progress-row"><span id="count">Question 1 of 8</span><div class="progress"><div id="progress"></div></div><span id="pct">0%</span></div>
+      <div class="route"><div class="city"><small>Starting city</small><strong id="origin">Seattle</strong></div><div class="arrow" aria-hidden="true">→</div><div class="city"><small>Destination</small><strong id="destination">San Diego</strong></div></div>
+      <p id="question" class="question">Which route best matches the map?</p>
+      <div id="answers" class="answers"></div>
+      <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
+      <div class="actions"><button id="restart" class="btn secondary">Start over</button><button id="next" class="btn primary" disabled>Next question →</button></div>
+    </div>
+    <div id="result" class="result"></div>
+  </section>
+  <section class="panel map-panel">
+    <div class="panel-head"><h2>Highway reference map</h2><p class="sub">Keep the network in view while you answer.</p></div>
+    <div class="map-wrap"><img id="map" src="highway-map.png" alt="Stylized map of U.S. interstate highways and connected cities" title="Click to open the map larger"></div>
+    <p class="map-note">This is a schematic learning map, not a turn-by-turn navigation map. Routes are based on the connections shown here.</p>
+  </section>
+</main>
+<div class="footer">Tip: look for the interstate numbers along the horizontal and vertical corridors, then trace the connected line between cities.</div>
+<script>
+const questions = [
+ {from:"Seattle",to:"San Diego",prompt:"Which interstate provides the direct north–south connection shown between these cities?",options:["I-5","I-15","I-25","I-95"],answer:0,why:"The map shows Seattle and San Diego on the same north–south corridor labeled I-5."},
+ {from:"Los Angeles",to:"Seattle",prompt:"Which interstate is the direct coastal route shown between these cities?",options:["I-10","I-5","I-80","I-15"],answer:1,why:"The map places Los Angeles and Seattle on the I-5 corridor."},
+ {from:"Boston",to:"Miami",prompt:"Which interstate runs down the eastern edge of the map from Boston toward Miami?",options:["I-75","I-85","I-95","I-65"],answer:2,why:"I-95 is the easternmost north–south corridor shown, connecting Boston and Miami."},
+ {from:"Los Angeles",to:"Jacksonville",prompt:"Which east–west interstate gets you from Los Angeles to the Jacksonville area on this map?",options:["I-20","I-40","I-10","I-70"],answer:2,why:"I-10 runs across the southern part of the map from Los Angeles to Jacksonville."},
+ {from:"San Francisco",to:"New York",prompt:"Which major east–west interstate is shown leaving San Francisco and crossing the northern half of the map?",options:["I-70","I-80","I-90","I-40"],answer:1,why:"The map labels the cross-country corridor beginning at San Francisco as I-80."},
+ {from:"Boston",to:"Chicago",prompt:"Which east–west interstate corridor connects Boston toward Chicago in the upper part of the map?",options:["I-90","I-70","I-30","I-20"],answer:0,why:"I-90 is the uppermost east–west interstate shown, running from the Seattle side toward Boston and passing the Chicago area."},
+ {from:"Denver",to:"Kansas City",prompt:"Which horizontal interstate links Denver and Kansas City in the map?",options:["I-40","I-70","I-80","I-20"],answer:1,why:"Denver and Kansas City sit on the same horizontal corridor labeled I-70."},
+ {from:"Nashville",to:"Chicago",prompt:"Which north–south interstate corridor is shown connecting the Nashville area up toward Chicago?",options:["I-55","I-65","I-75","I-85"],answer:1,why:"The I-65 corridor runs north from the Nashville area toward the Chicago junction in this schematic."}
+];
+let index=0, score=0, answered=false, history=[];
+const $=id=>document.getElementById(id);
+function render(){
+ const q=questions[index]; answered=false;
+ $("quiz").style.display="block"; $("result").classList.remove("show");
+ $("count").textContent=`Question ${index+1} of ${questions.length}`;
+ $("progress").style.width=`${index/questions.length*100}%`; $("pct").textContent=`${Math.round(index/questions.length*100)}%`;
+ $("origin").textContent=q.from; $("destination").textContent=q.to; $("question").textContent=q.prompt;
+ $("feedback").className="feedback"; $("feedback").textContent="";
+ $("next").disabled=true; $("next").textContent=index===questions.length-1?"See results":"Next question →";
+ $("answers").innerHTML="";
+ q.options.forEach((opt,i)=>{const b=document.createElement("button");b.className="answer";b.innerHTML=`<span class="letter">${String.fromCharCode(65+i)}</span><span>${opt}</span>`;b.addEventListener("click",()=>choose(i));$("answers").appendChild(b)});
+}
+function choose(choice){
+ if(answered)return; answered=true; const q=questions[index], correct=choice===q.answer; if(correct)score++;
+ history.push({q,choice,correct});
+ [...$("answers").children].forEach((b,i)=>{b.disabled=true;if(i===q.answer)b.classList.add("correct");if(i===choice&&!correct)b.classList.add("wrong")});
+ $("feedback").className="feedback show "+(correct?"good":"bad");
+ $("feedback").textContent=(correct?"That's right. ":"Not quite. ")+q.why;
+ $("next").disabled=false; $("progress").style.width=`${(index+1)/questions.length*100}%`; $("pct").textContent=`${Math.round((index+1)/questions.length*100)}%`;
+}
+function finish(){
+ $("quiz").style.display="none";const r=$("result");r.classList.add("show");
+ const percent=Math.round(score/questions.length*100);
+ const summary=percent===100?"Perfect navigation. You know this map.":percent>=75?"Nice work. You can read most of the network.":"Good practice. Review the route map and give it another run.";
+ r.innerHTML=`<div class="eyebrow">Challenge complete</div><h1>Your route report</h1><div class="score">${score}/${questions.length}</div><p>${percent}% correct · ${summary}</p><div class="review">${history.map((h,i)=>`<div class="review-item"><b>${h.correct?"✓":"↺"} ${h.q.from} → ${h.q.to}</b>Your answer: ${h.q.options[h.choice]}${h.correct?"":" · Route shown: "+h.q.options[h.q.answer]}</div>`).join("")}</div><button class="btn primary" id="again">Try again</button>`;
+ $("again").addEventListener("click",reset);
+}
+function reset(){index=0;score=0;history=[];render()}
+$("next").addEventListener("click",()=>{if(!answered)return;if(index<questions.length-1){index++;render()}else finish()});
+$("restart").addEventListener("click",reset);
+$("map").addEventListener("click",()=>{const w=window.open($("map").src,"_blank","noopener");if(w)w.focus()});
+render();
+</script>
+</body>
+</html>
